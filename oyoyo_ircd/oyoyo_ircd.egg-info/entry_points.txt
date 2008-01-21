@@ -1,4 +1,0 @@
-
-    [console_scripts]
-    oyoyo_ircd = oyoyo_ircd.app:make_app
-    
