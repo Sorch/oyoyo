@@ -44,6 +44,11 @@ def auth(func):
     return func
 
 
+class PermissionDeniedError(CommandError):
+    def __str__(self):
+        return "you do not have permission"
+
+
 def extendCommandClassWithEP(klass, ep, client):
     log.info('adding %s as %s' % (ep.name, ep))
     try:
@@ -108,20 +113,17 @@ class BotCommands(DefaultBotCommandHandler):
     def run(self, command, sender, dest, *arg):
         log.info("running command sender=%s, dest=%s, command=%s, arg=%s",
             sender, dest, command, arg)
-        try:
-            f = self.get(command)
-        except CommandError, e:
-            helpers.msg(self.client, dest, str(e))
-            return
 
         if (hasattr(f, 'auth') and 
-            not self.client.command_handler.auth(sender, dest, command, *arg)):
-            helpers.msg(self.client, dest, 
-                "sorry, you dont have permission to do that")
-            return
+            not self.client.command_handler.auth(self, command, sender, dest, *arg)):
+                helpers.msg(self.client, dest, 
+                    "you do not have the required permissions")
+                return
 
         try:
-            f(sender, dest, *arg)
+            DefaultBotCommandHandler.run(self, command, sender, dest, *arg)
+        except CommandError, e:
+            helpers.msg(self.client, dest, str(e))
         except Exception, e:
             log.error('command %s raised %s' % (command, e))
             log.error(traceback.format_exc())
@@ -143,7 +145,7 @@ class BotCommands(DefaultBotCommandHandler):
         helpers.part(self.client, arg.strip())
 
 
-def loadAuthPlugin(plugin, args):
+def loadAuthPlugin(plugin):
     log.info('loadAuthPlugin %s %s' % (plugin, args))
     ep = pkg_resources.EntryPoint.parse("auth = %s" % plugin)
     if not ep.dist:
@@ -153,7 +155,7 @@ def loadAuthPlugin(plugin, args):
         ep.dist = pkg_resources.get_distribution('oyoyo_bot')
     f = ep.load()
     log.info('loaded auth %s' % f)
-    return f(*args)
+    return f()
 
 
 def loadListenerPlugins(working_set, key, client):

@@ -22,12 +22,12 @@ from sqlalchemy import Table, Column, Integer, String
 from sqlalchemy.orm import mapper
 
 from oyoyo import helpers
-from oyoyo.util import parse_name
+from oyoyo.parse import parse_nick
 from oyoyo.cmdhandler import CommandHandler
 
 from oyoyo_bot import db
-from oyoyo_bot.app import auth, config
-from oyoyo_bot.authplugins import OwnerAuth
+from oyoyo_bot.app import auth, config, app
+from oyoyo_bot.authplugins import OwnerAuth, deny
 
 import logging
 log = logging.getLogger(__name__)
@@ -64,23 +64,45 @@ mapper(AuthEntry, AuthTable)
 
 class Commands(CommandHandler):
     """ tell someone something the next time they join """
-    def __call__(self, sender, dest, arg):
-        t = arg.split(' ', 1)
-        target, function = t[0], t[1]
-        sender = parse_name(sender)[0]
-
-        entry = AuthEntry(target, function)
-        db.session.save(entry)
+    @auth
+    def add(self, sender, dest, arg):
+        user, commands = arg.split(' ', 1)
+        commands = commands.split(' ')
+        for command in commands:
+            ae = AuthEntry(user, command)
+            db.session.save_or_update(ae)
         db.session.commit()
+        helpers.msgOK(self.client, dest, parse_nick(sender)[0])
+
+    @auth
+    def remove(self, sender, dest, arg):
+        user, commands = arg.split(' ', 1)
+        commands = commands.split(' ')
+        for command in commands:
+            ae = AuthEntry.getForUser(user, command)
+            if len(ae):
+                db.session.delete(ae)
+        db.session.commit()
+        helpers.msgOK(self.client, dest, parse_nick(sender)[0])
+
+    @auth
+    def list(self, sender, dest, arg=None):
+        if arg:
+            commands = AuthEntry.getForUser(arg)
+        else:
+            commands = AuthEntry.getAll()
+        for command in commands:
+            helpers.msg(self.client, dest, "%s: %s" % 
+                (command.user, command.command))
         helpers.msgOK(self.client, dest, sender)
-auth(Commands)
 
 
 class Auth(OwnerAuth):
-    def __call__(self, sender, dest, command, arg=None):
-        return (OwnerAuth.__call__(self, sender, dest, command, arg) or 
-                len(AuthEntry.getForUser(sender, command)))
-        
-
-
-
+    def __call__(self, handler, command, sender, dest, *arg):
+        log.info('auth(%s, %s, %s, %s)' % (sender, dest, command, arg))
+        if OwnerAuth.__call__(self, handler, command, sender, dest, *arg):
+            return True
+            
+        if not len(AuthEntry.getForUser(sender, command))):
+            return False
+            

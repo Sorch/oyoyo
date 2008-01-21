@@ -15,7 +15,7 @@ setup(
     author='Dunk Fordyce',
     author_email='dunkfordyce@gmail.com',
     license="MIT",
-    #url='',
+    url='http://code.google.com/p/oyoyo/',
     install_requires=[],
     packages=find_packages(exclude=['ez_setup']),
     include_package_data=True,

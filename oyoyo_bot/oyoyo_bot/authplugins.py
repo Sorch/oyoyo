@@ -15,14 +15,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from oyoyo_bot.app import config, PermissionDeniedError
+from oyoyo import helpers
+
+
 class AuthScheme:
-    def __call__(self, sender, dest, command, arg=None):
+    def __call__(self, handler, command, sender, dest, *arg):
         return True
 
+
 class OwnerAuth(AuthScheme):
-    def __init__(self, owner):
-        self.owner = owner
-    def __call__(self, sender, dest, command, arg=None):
-        return sender == self.owner
+    def __init__(self):
+        self.owner = config['auth']['owner']
+
+    def __call__(self, handler, command, sender, dest, *arg):
+        return self.owner == sender
+
 
 
