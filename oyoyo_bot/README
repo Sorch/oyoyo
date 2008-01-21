@@ -1,0 +1,43 @@
+oyoyo bot
+---------
+
+oyoyo bot is a bot based on the oyoyo irc module. it supports:
+    
+    * ini config
+    * plugins loaded from either/or:
+        * a plugin dir
+        * system-wide installations
+        * directly from the config
+    * plugins can:
+        * listen for events 
+        * listen for bot commands 
+        * specify defaults to add into the config 
+    * plugable authentication
+    * automated help system extracted from docstrings
+    * "dotted" commands ( command.subcommand )
+    * database support via sqlalchemy 
+   
+installation
+------------
+
+the usual 
+    $ python setup.py install
+
+running
+-------
+
+    $ oyoyo_bot [-c] [config [config [...]]]
+
+the combined config is wirtten to lastrun.ini. you can run 
+oyoyo_bot with no arguments to use the builtin defaults. 
+passing -c will cause oyoyo to quit as soon as the lastrun.ini
+has been written. you should use this option the first time you 
+configure oyoyo and then copy lastrun.ini to something more 
+meaningful
+
+    $ oyoyo_bot -c
+    $ cp lastrun.ini mysetup.ini
+    $ <your favourite text editor>  mysetup.py 
+    $ oyoyo_bot mysetup.py
+
+
