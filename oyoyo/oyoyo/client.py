@@ -22,14 +22,12 @@ import string
 import time
 import threading
 import os
-import logging 
 import traceback
 
 from oyoyo.parse import *
 from oyoyo import helpers
 from oyoyo.cmdhandler import CommandError
 
-log = logging.getLogger(__name__)
 
 
 class IRCClient:
@@ -37,7 +35,7 @@ class IRCClient:
     This can be used either with or without IRCApp ( see connect() docs )
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, cmd_handler, **kwargs):
         """ the first argument should be an object with attributes/methods named 
         as the irc commands. You may subclass from one of the classes in 
         oyoyo.cmdhandler for convenience but it is not required. The 
@@ -74,15 +72,15 @@ class IRCClient:
         ...
         """
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.nick = "oyoyo"
+        self.nick = None
         self.real_name = None
         self.host = None
         self.port = None
         self.connect_cb = None
-        self.command_handler = None #command_handler_cls(self)
         self.blocking = False
 
         self.__dict__.update(kwargs)
+        self.command_handler = cmd_handler(self)
 
         self._end = 0
 
@@ -94,7 +92,7 @@ class IRCClient:
         >>> cli.send("JOIN", some_room)
         """
         msg = " ".join(args)
-        log.info('---> send "%s"' % msg)
+        print('---> send "%s"' % msg)
         self.socket.send("%s\r\n" % msg)
 
     def connect(self):
@@ -108,7 +106,7 @@ class IRCClient:
 
         """
         try:
-            log.info('connecting to %s:%s' % (self.host, self.port))
+            print('connecting to %s:%s' % (self.host, self.port))
             self.socket.connect(("%s" % self.host, self.port))
             if not self.blocking:
                 self.socket.setblocking(0)
@@ -143,7 +141,7 @@ class IRCClient:
                 yield True
         finally:
             if self.socket: 
-                log.info('closing socket')
+                print('closing socket')
                 self.socket.close()
                     
 
@@ -172,7 +170,7 @@ class IRCApp:
 
         warning: if you add a client that has blocking set to true,
         timers will no longer function properly """
-        log.info('added client %s (ar=%s)' % (client, autoreconnect))
+        print('added client %s (ar=%s)' % (client, autoreconnect))
         self._clients[client] = self._ClientDesc(autoreconnect=autoreconnect)
 
     def addTimer(self, seconds, cb):
@@ -180,7 +178,8 @@ class IRCApp:
         garuntee the callback will be called after seconds has passed.
         ( the only advantage to these timers is they dont use threads )
         """
-        log.info('added timer to call %s in %ss' % (cb, seconds))
+        assert callable(cb)
+        print('added timer to call %s in %ss' % (cb, seconds))
         self._timers.append((time.time() + seconds, cb))
 
     def run(self):
@@ -197,11 +196,11 @@ class IRCApp:
                 try:
                     clientdesc.con.next()
                 except Exception, e:
-                    log.error('client error %s' % e)
-                    log.error(traceback.format_exc())
+                    print('client error %s' % e)
+                    print(traceback.format_exc())
                     if clientdesc.autoreconnect:
                         clientdesc.con = None 
-                        if type(clientdesc.autoreconnect) is int:
+                        if isinstance(clientdesc.autoreconnect, (int, float)):
                             clientdesc.autoreconnect -= 1
                         found_one_alive = True
                     else:
@@ -210,7 +209,7 @@ class IRCApp:
                     found_one_alive = True
                 
             if not found_one_alive:
-                log.info('nothing left alive... quiting')
+                print('nothing left alive... quiting')
                 self.stop() 
 
             now = time.time()
@@ -218,7 +217,7 @@ class IRCApp:
             self._timers = []
             for target_time, cb in timers:
                 if now > target_time:
-                    log.info('calling timer cb %s' % cb)
+                    print('calling timer cb %s' % cb)
                     cb()
                 else:   
                     self._timers.append((target_time, cb))

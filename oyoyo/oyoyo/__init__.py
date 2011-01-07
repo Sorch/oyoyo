@@ -15,4 +15,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+"""A small, simple irc lib for python suitable for bots, clients and anything else.
 
+For more information and documentation about this package:
+   http://code.google.com/p/oyoyo/
+"""

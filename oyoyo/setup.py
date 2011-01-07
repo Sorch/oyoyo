@@ -12,8 +12,8 @@ setup(
     name='oyoyo',
     version="",
     description='a fast, simple irc module suitable for clients, bots and games',
-    author='Dunk Fordyce',
-    author_email='dunkfordyce@gmail.com',
+    author='Dunk Fordyce, Daniel da Silva (current)',
+    author_email='dunkfordyce@gmail.com, meltingwax@gmail.com',
     license="MIT",
     url='http://code.google.com/p/oyoyo/',
     install_requires=[],
@@ -27,6 +27,6 @@ setup(
     #        ('public/**', 'ignore', None)]},
     entry_points="""
     [console_scripts]
-    oyoyo_log = oyoyo.logclient:make_app
+    oyoyo_eexample = oyoyo_example:main
     """,
 )

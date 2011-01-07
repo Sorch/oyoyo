@@ -21,9 +21,6 @@ import traceback
 from oyoyo import helpers
 from oyoyo.parse import parse_nick
 
-import logging 
-log = logging.getLogger(__name__)
-
 
 def protected(func):
     """ decorator to protect functions from being called """
@@ -49,10 +46,6 @@ class CommandHandler(object):
 
     def __init__(self, client):
         self.client = client
-
-    @protected
-    def unhandled(self, cmd, *args):
-        log.warn('unhandled command %s(%s)' % (cmd, args))
 
     @protected
     def get(self, in_command_parts):
@@ -91,29 +84,39 @@ class CommandHandler(object):
     @protected
     def run(self, command, *args):
         """ finds and runs a command """
-        log.debug("processCommand %s(%s)" % (command, args))
+        #print("processCommand %s(%s)" % (command, args))
 
         try:
             f = self.get(command)
         except NoSuchCommandError:
-            self.unhandled(command, *args)
+            self.__unhandled__(command, *args)
             return
 
-        log.debug('f %s' % f)
+        #print('f %s' % f)
 
         try:
             f(*args)
         except Exception, e:
-            log.error('command raised %s' % e)
-            log.error(traceback.format_exc())
+            print('command raised %s' % e)
+            print(traceback.format_exc())
             raise CommandError(command)
+
+    @protected
+    def __unhandled__(self, cmd, *args):
+        """The default handler for commands. Override this method to
+        apply custom behavior (example, printing) unhandled commands.
+        """
+        #print('unhandled command %s(%s)' % (cmd, args))
+        pass
 
 
 class DefaultCommandHandler(CommandHandler):
-    """ CommandHandler that provides methods for the normal operation of IRC """
+    """ CommandHandler that provides methods for the normal operation of IRC.
+    If you want your bot to properly respond to pings, etc, you should subclass this.
+    """
 
-    def ping(self, prefix, args):
-        self.client.send('PONG', "oyoyo")
+    def ping(self, prefix, server):
+        self.client.send('PONG', server)
 
 
 class DefaultBotCommandHandler(CommandHandler):
@@ -131,7 +134,7 @@ class DefaultBotCommandHandler(CommandHandler):
 
     def help(self, sender, dest, arg=None):
         """list all available commands or get help on a specific command"""
-        log.info('help sender=%s dest=%s arg=%s' % (sender, dest, arg))
+        print('help sender=%s dest=%s arg=%s' % (sender, dest, arg))
         if not arg:
             commands = self.getVisibleCommands()
             commands.sort()
@@ -170,7 +173,7 @@ class BotCommandHandler(DefaultCommandHandler):
         and calls self.processBotCommand(cmd, sender) if its is.
         """
     
-        log.debug("tryBotCommand('%s' '%s' '%s')" % (prefix, dest, msg))
+        print("tryBotCommand('%s' '%s' '%s')" % (prefix, dest, msg))
 
         if dest == self.client.nick:
             dest = parse_nick(prefix)[0]

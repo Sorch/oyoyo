@@ -1,16 +1,14 @@
 oyoyo irc lib 
 -------------
 
-a small, simple irc lib for python suitable for bots, clients and anything 
-else you can think of ( even games )
+The oyoyo irc library is a small, simple irc lib for python suitable for bots, clients and anything else you can think of (even games).
 
-    * clean and simple design 
-    * multiserver 
-    * multiroom 
+    * clean and simple design
+    * multi-server, multi-room
     * autoreconnect
-    * low level bot framework ( see oyoyo_bot package for a full bot )
     * timed callbacks
     * and not a thread in sight! 
+
 
 Install
 -------
@@ -23,3 +21,7 @@ or for developers
 
     $ python setup.py develop --install-dir=/some/path
     
+
+Support
+--------
+You may contact the currently maintiner at meltingwax@gmail.com
