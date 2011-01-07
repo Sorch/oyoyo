@@ -20,13 +20,8 @@ setup(
     packages=find_packages(exclude=['ez_setup']),
     include_package_data=True,
     test_suite='nose.collector',
-    #package_data={'fdweb': ['i18n/*/LC_MESSAGES/*.mo']},
-    #message_extractors = {'fdweb': [
-    #        ('**.py', 'python', None),
-    #        ('templates/**.mako', 'mako', None),
-    #        ('public/**', 'ignore', None)]},
     entry_points="""
     [console_scripts]
-    oyoyo_eexample = oyoyo_example:main
+    oyoyo_example_bot = oyoyo.examplebot:main
     """,
 )
