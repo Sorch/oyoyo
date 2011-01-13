@@ -15,6 +15,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import logging
 import socket
 import sys
 import re
@@ -27,7 +28,6 @@ import traceback
 from oyoyo.parse import *
 from oyoyo import helpers
 from oyoyo.cmdhandler import CommandError
-
 
 
 class IRCClient:
@@ -92,7 +92,7 @@ class IRCClient:
         >>> cli.send("JOIN", some_room)
         """
         msg = " ".join(args)
-        print('---> send "%s"' % msg)
+        logging.info('---> send "%s"' % msg)
         self.socket.send("%s\r\n" % msg)
 
     def connect(self):
@@ -106,7 +106,7 @@ class IRCClient:
 
         """
         try:
-            print('connecting to %s:%s' % (self.host, self.port))
+            logging.info('connecting to %s:%s' % (self.host, self.port))
             self.socket.connect(("%s" % self.host, self.port))
             if not self.blocking:
                 self.socket.setblocking(0)
@@ -135,13 +135,13 @@ class IRCClient:
                         try:
                             self.command_handler.run(command, prefix, *args)
                         except CommandError:
-                            # error will of already been logged by the handler
+                            # error will of already been loggingged by the handler
                             pass 
 
                 yield True
         finally:
             if self.socket: 
-                print('closing socket')
+                logging.info('closing socket')
                 self.socket.close()
                     
 
@@ -170,7 +170,7 @@ class IRCApp:
 
         warning: if you add a client that has blocking set to true,
         timers will no longer function properly """
-        print('added client %s (ar=%s)' % (client, autoreconnect))
+        logging.info('added client %s (ar=%s)' % (client, autoreconnect))
         self._clients[client] = self._ClientDesc(autoreconnect=autoreconnect)
 
     def addTimer(self, seconds, cb):
@@ -179,7 +179,7 @@ class IRCApp:
         ( the only advantage to these timers is they dont use threads )
         """
         assert callable(cb)
-        print('added timer to call %s in %ss' % (cb, seconds))
+        logging.info('added timer to call %s in %ss' % (cb, seconds))
         self._timers.append((time.time() + seconds, cb))
 
     def run(self):
@@ -196,8 +196,8 @@ class IRCApp:
                 try:
                     clientdesc.con.next()
                 except Exception, e:
-                    print('client error %s' % e)
-                    print(traceback.format_exc())
+                    logging.error('client error %s' % e)
+                    logging.error(traceback.format_exc())
                     if clientdesc.autoreconnect:
                         clientdesc.con = None 
                         if isinstance(clientdesc.autoreconnect, (int, float)):
@@ -209,7 +209,7 @@ class IRCApp:
                     found_one_alive = True
                 
             if not found_one_alive:
-                print('nothing left alive... quiting')
+                logging.info('nothing left alive... quiting')
                 self.stop() 
 
             now = time.time()
@@ -217,7 +217,7 @@ class IRCApp:
             self._timers = []
             for target_time, cb in timers:
                 if now > target_time:
-                    print('calling timer cb %s' % cb)
+                    logging.info('calling timer cb %s' % cb)
                     cb()
                 else:   
                     self._timers.append((target_time, cb))

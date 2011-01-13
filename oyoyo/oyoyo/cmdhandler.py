@@ -16,6 +16,7 @@
 # THE SOFTWARE.
 
 import inspect
+import logging
 import traceback
 
 from oyoyo import helpers
@@ -84,7 +85,7 @@ class CommandHandler(object):
     @protected
     def run(self, command, *args):
         """ finds and runs a command """
-        #print("processCommand %s(%s)" % (command, args))
+        logging.debug("processCommand %s(%s)" % (command, args))
 
         try:
             f = self.get(command)
@@ -92,13 +93,13 @@ class CommandHandler(object):
             self.__unhandled__(command, *args)
             return
 
-        #print('f %s' % f)
+        logging.debug('f %s' % f)
 
         try:
             f(*args)
         except Exception, e:
-            print('command raised %s' % e)
-            print(traceback.format_exc())
+            logging.error('command raised %s' % e)
+            logging.error(traceback.format_exc())
             raise CommandError(command)
 
     @protected
@@ -106,8 +107,7 @@ class CommandHandler(object):
         """The default handler for commands. Override this method to
         apply custom behavior (example, printing) unhandled commands.
         """
-        #print('unhandled command %s(%s)' % (cmd, args))
-        pass
+        logging.debug('unhandled command %s(%s)' % (cmd, args))
 
 
 class DefaultCommandHandler(CommandHandler):
@@ -134,7 +134,7 @@ class DefaultBotCommandHandler(CommandHandler):
 
     def help(self, sender, dest, arg=None):
         """list all available commands or get help on a specific command"""
-        print('help sender=%s dest=%s arg=%s' % (sender, dest, arg))
+        logging.info('help sender=%s dest=%s arg=%s' % (sender, dest, arg))
         if not arg:
             commands = self.getVisibleCommands()
             commands.sort()
@@ -173,7 +173,7 @@ class BotCommandHandler(DefaultCommandHandler):
         and calls self.processBotCommand(cmd, sender) if its is.
         """
     
-        print("tryBotCommand('%s' '%s' '%s')" % (prefix, dest, msg))
+        logging.debug("tryBotCommand('%s' '%s' '%s')" % (prefix, dest, msg))
 
         if dest == self.client.nick:
             dest = parse_nick(prefix)[0]
