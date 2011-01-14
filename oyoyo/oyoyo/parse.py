@@ -15,6 +15,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import logging
 import sys
 
 from oyoyo.ircevents import *
@@ -59,7 +60,7 @@ def parse_raw_irc_command(element):
         try:
             command = numeric_events[command]
         except KeyError:
-            print('unknown numeric event %s' % command)
+            logging.warn('unknown numeric event %s' % command)
     command = command.lower()
 
     if args[0].startswith(bytes(':', 'ascii')):
