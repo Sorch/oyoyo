@@ -124,7 +124,7 @@ class IRCClient:
 
         msg = bytes(" ", "ascii").join(bargs)
         logging.info('---> send "%s"' % msg)
-        self.socket.send(msg + b"\r\n")
+        self.socket.send(msg + bytes("\r\n", "ascii"))
 
     def connect(self):
         """ initiates the connection to the server set in self.host:self.port 
