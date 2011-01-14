@@ -153,7 +153,11 @@ class IRCClient:
                 try:
                     buffer += self.socket.recv(1024)
                 except socket.error, e:
-                    if not self.blocking and e.errno == 11:
+                    try:  # a little dance of compatibility to get the errno
+                        errno = e.errno
+                    except AttributeError:
+                        errno = e[0]                        
+                    if not self.blocking and errno == 11:
                         pass
                     else:
                         raise e
