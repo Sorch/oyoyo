@@ -15,7 +15,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import sys
+
 from oyoyo.ircevents import *
+
+# Python < 3 compatibility
+if sys.version_info < (3,):
+    class bytes(object):
+        def __new__(self, b='', encoding='utf8'):
+            return str(b)
+
 
 def parse_raw_irc_command(element):
     """
@@ -36,9 +45,8 @@ def parse_raw_irc_command(element):
 
     <crlf>     ::= CR LF
     """
-
-    parts = element.strip().split(" ")
-    if parts[0][0] == ':':
+    parts = element.strip().split(bytes(" ", "ascii"))
+    if parts[0].startswith(bytes(':', 'ascii')):
         prefix = parts[0][1:]
         command = parts[1]
         args = parts[2:]
@@ -54,13 +62,14 @@ def parse_raw_irc_command(element):
             print('unknown numeric event %s' % command)
     command = command.lower()
 
-    if args[0][0] == ':':
-        args = [" ".join(args)[1:]]
+    if args[0].startswith(bytes(':', 'ascii')):
+        args = [bytes(" ", "ascii").join(args)[1:]]
     else:
-        for idx, arg in enumerate(args):
-            if arg[0] == ':':
-                args = args[:idx] + [" ".join(args[idx:])[1:]]
+        for idx, arg in enumerate(args):           
+            if arg.startswith(bytes(':', 'ascii')):
+                args = args[:idx] + [bytes(" ", 'ascii').join(args[idx:])[1:]]
                 break
+
     return (prefix, command, args)
 
 

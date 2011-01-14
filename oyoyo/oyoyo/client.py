@@ -29,6 +29,16 @@ from oyoyo.parse import *
 from oyoyo import helpers
 from oyoyo.cmdhandler import CommandError
 
+# Python < 3 compatibility
+if sys.version_info < (3,):
+    class bytes(object):
+        def __new__(self, b='', encoding='utf8'):
+            return str(b)
+
+
+class IRCClientError(Exception):
+    pass
+
 
 class IRCClient:
     """ IRC Client class. This handles one connection to a server.
@@ -84,16 +94,37 @@ class IRCClient:
 
         self._end = 0
 
-    def send(self, *args):
+    def send(self, *args, **kwargs):
         """ send a message to the connected server. all arguments are joined
         with a space for convenience, for example the following are identical 
         
         >>> cli.send("JOIN %s" % some_room)
         >>> cli.send("JOIN", some_room)
+
+        In python 2, all args must be of type str or unicode, *BUT* if they are
+          unicode they will be converted to str with the encoding specified by
+          the 'encoding' keyword argument (default 'utf8').
+        In python 3, all args must be of type str or bytes, *BUT* if they are
+          str they will be converted to bytes with the encoding specified by the
+          'encoding' keyword argument (default 'utf8'). 
         """
-        msg = " ".join(args)
+        # Convert all args to bytes if not already
+        encoding = kwargs.get('encoding') or 'utf8'
+        bargs = []
+        for arg in args:
+            if isinstance(arg, str):
+                bargs.append(bytes(arg, encoding))
+            elif isinstance(arg, bytes):
+                bargs.append(arg)
+            elif type(arg).__name__ == 'unicode':
+                bargs.append(arg.encode(encoding))
+            else:
+                raise IRCClientError('Refusing to send one of the args from provided: %s'
+                                     % repr([(type(arg), arg) for arg in args]))
+
+        msg = bytes(" ", "ascii").join(bargs)
         logging.info('---> send "%s"' % msg)
-        self.socket.send("%s\r\n" % msg)
+        self.socket.send(msg + b"\r\n")
 
     def connect(self):
         """ initiates the connection to the server set in self.host:self.port 
@@ -117,17 +148,17 @@ class IRCClient:
             if self.connect_cb:
                 self.connect_cb(self)
             
-            buffer = ""
+            buffer = bytes()
             while not self._end:
                 try:
                     buffer += self.socket.recv(1024)
                 except socket.error, e:
-                    if not self.blocking and e[0] == 11:
+                    if not self.blocking and e.errno == 11:
                         pass
                     else:
                         raise e
                 else:
-                    data = buffer.split("\n")
+                    data = buffer.split(bytes("\n", "ascii"))
                     buffer = data.pop()
 
                     for el in data:

@@ -17,10 +17,17 @@
 
 import inspect
 import logging
+import sys
 import traceback
 
 from oyoyo import helpers
 from oyoyo.parse import parse_nick
+
+# Python < 3 compatibility
+if sys.version_info < (3,):
+    class bytes(object):
+        def __new__(self, b='', encoding='utf8'):
+            return str(b)
 
 
 def protected(func):
@@ -58,13 +65,13 @@ class CommandHandler(object):
         its possible to pass both "command.sub.func" and 
         ["command", "sub", "func"].
         """
-        if type(in_command_parts) is str:
-            in_command_parts = in_command_parts.split('.')
+        if isinstance(in_command_parts, (str, bytes)):
+            in_command_parts = in_command_parts.split(bytes('.', 'ascii'))
         command_parts = in_command_parts[:]
-            
+
         p = self
         while command_parts:
-            cmd = command_parts.pop(0)
+            cmd = command_parts.pop(0).decode('ascii')
             if cmd.startswith('_'):
                 raise ProtectedCommandError(in_command_parts)
 

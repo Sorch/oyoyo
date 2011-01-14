@@ -1,12 +1,23 @@
 import sys
-print sys.path
+print(sys.path)
+
+is_py3 = (sys.version_info >= (3,))
+
 try:
     from setuptools import setup, find_packages
-except ImportError, e:
-    print e
-    from ez_setup import use_setuptools
+except ImportError as e:
+    print(e)
+    if is_py3:
+        from distribute_setup import use_setuptools
+    else:
+        from ez_setup import use_setuptools
     use_setuptools()
     from setuptools import setup, find_packages
+
+# Call setup function, adding use_2to3 kwarg if under python 3
+extras = {}
+if is_py3:
+    extras['use_2to3'] = True
 
 setup(
     name='oyoyo',
@@ -24,4 +35,5 @@ setup(
     [console_scripts]
     oyoyo_example_bot = oyoyo.examplebot:main
     """,
+    **extras
 )

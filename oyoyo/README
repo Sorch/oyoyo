@@ -1,7 +1,8 @@
 oyoyo irc lib 
 -------------
 
-The oyoyo irc library is a small, simple irc lib for python suitable for bots, clients and anything else you can think of (even games).
+The oyoyo irc library is a small, simple irc lib for python suitable for bots, clients
+and anything else you can think of (even games).
 
     * clean and simple design
     * multi-server, multi-room
@@ -12,6 +13,9 @@ The oyoyo irc library is a small, simple irc lib for python suitable for bots, c
 
 Install
 -------
+This codebase is configured to install and run properly on both python 2.x and python 3.x.
+To choose which version of python to install on, run the setup.py script with your choice
+of the ``python2'' or ``python3'' commands.
 
 the usual
 
@@ -24,4 +28,4 @@ or for developers
 
 Support
 --------
-You may contact the currently maintiner at meltingwax@gmail.com
+You may contact the currently maintainer at meltingwax@gmail.com
