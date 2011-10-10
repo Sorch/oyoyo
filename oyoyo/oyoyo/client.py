@@ -21,7 +21,6 @@ import sys
 import re
 import string
 import time
-import threading
 import os
 import traceback
 
